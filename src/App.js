@@ -1,6 +1,6 @@
 import "./App.css";
-import {useState} from "react";
-import {useEffect} from "react"
+import { useState } from "react";
+import { useEffect } from "react";
 const urlEndpoint = process.env.REACT_APP_URL_ENDPOINT;
 
 //////////////////////////////////
@@ -26,24 +26,88 @@ const BlogListCard = (props) => {
   );
 };
 
+const OptionBar = (props) => {
+  const [limit, setLimit] = useState("10");
+  const [page, setPage] = useState("1");
+  const [sortBy, setSortBy] = useState("");
+  const [order, setOrder] = useState("");
+
+  useEffect(() => {
+    props.generateUrlParams(limit, page, sortBy, order);
+  }, [limit, page, sortBy, order]);
+
+  return (
+    <div>
+      <label>Limit</label>
+      <input
+        type="number"
+        value={limit}
+        onChange={(e) => {
+          setLimit(e.target.value);
+        }}
+      ></input>
+
+      <label>Page</label>
+      <input
+        type="number"
+        value={page}
+        onChange={(e) => {
+          setPage(e.target.value);
+        }}
+      ></input>
+
+      <label>SortBy</label>
+      <select
+        onChange={(e) => {
+          setSortBy(e.target.value);
+        }}
+      >
+        <option></option>
+        <option value="id">id</option>
+        <option value="title">title</option>
+        <option value="createdAt">createdAt</option>
+      </select>
+
+      <label>Order</label>
+      <select
+        onChange={(e) => {
+          setOrder(e.target.value);
+        }}
+      >
+        <option></option>
+        <option value="asc">asc</option>
+        <option value="desc">desc</option>
+      </select>
+    </div>
+  );
+};
+
 /////////////////////////////////
 ////////////////////////////////
 
 const App = () => {
   const [blogs, setBlogs] = useState([...sampleBlogs]);
+  const [urlParamString, setUrlParamString] = useState("");
+
+  const generateUrlParams = (limit, page, sortBy, order) => {
+    let urlParams = `?limit=${limit}&page=${page}&sortBy=${sortBy}&order=${order}`;
+
+    setUrlParamString(urlParams);
+  };
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const result = await fetch(`${urlEndpoint}/blogs`)
+      const result = await fetch(`${urlEndpoint}/blogs${urlParamString}`);
       const blogs1 = await result.json();
-      setBlogs(blogs1)
+      setBlogs(blogs1);
     };
 
     fetchBlogs();
-  }, []);
+  }, [urlParamString]);
 
   return (
     <div className="App-header">
+      <OptionBar generateUrlParams={generateUrlParams} />
       <BlogList blogs={blogs} />
     </div>
   );
